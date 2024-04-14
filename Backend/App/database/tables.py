@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Date
+
 from ..database.connection import Base
 
 class User(Base):
@@ -22,28 +23,11 @@ class User(Base):
            password=password
        )
 
-class ImagePATH(Base):
-    __tablename__ = "image"
-
-    imageid = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
-    makerid = Column(Integer, primary_key=True, nullable=False)
-    imagename = Column(String, nullable=False)
-    imagepath = Column(String, nullable=False)
-    makedate = Column(DateTime, nullable=False, default=datetime.now)
-
-    @classmethod
-    def create(cls, makerid:int, imagename: str,imagepath: str) -> "ImagePATH":
-        return cls(
-            makerid=makerid,
-            imagename=imagename,
-            imagepath=imagepath,
-        )
-
 class Student(Base):
     __tablename__ = "student"
 
     studentid = Column(Integer, primary_key=True, nullable=False)
-    userid = Column(Integer, primary_key=True, nullable=False)
+    userid = Column(Integer, ForeignKey("user.id"), primary_key=True, nullable=False)
     univ = Column(String, nullable=False)
     major = Column(String, nullable=False)
 
@@ -55,3 +39,43 @@ class Student(Base):
             univ=univ,
             major=major,
         )
+
+# 계좌 정보를 담고있는 테이블
+class Account(Base):
+    __tablename__ = "account"
+
+    # 테이블 속성
+    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    user_id = Column(Integer, ForeignKey("user.id"), primary_key=True, nullable=False)
+    accountnum = Column(String, nullable=False)
+    objective = Column(String, nullable=False)
+
+    @classmethod
+    def create(cls, userid: int, accountnum: str, objective: str):
+        return cls(
+            userid=userid,
+            accountnum=accountnum,
+            objective=objective,
+        )
+# 계좌 거래내역을 담고있는 테이블
+class Mydata(Base):
+    __tablename__ = "dealhist"
+
+    account_id = Column(Integer, primary_key=True, nullable=False)
+    clients = Column(String, nullable=False)
+    dealcost = Column(Integer, nullable=False)
+    leftcharge = Column(Integer, nullable=False)
+    dealtime = Column(DateTime, nullable=False)
+    dealtype = Column(String, nullable=False)
+
+    @classmethod
+    def create(cls, account_id: int, clients: str, dealcost: int, leftcharge: int, dealtime: DateTime, dealtype: str):
+        return cls(
+            account_id=account_id,
+            clients=clients,
+            dealcost=dealcost,
+            leftcharge=leftcharge,
+            dealtime=dealtime,
+            dealtype=dealtype
+        )
+
