@@ -61,49 +61,6 @@ class UserRepository:
         self.db.refresh(update_user)
         return update_user
 
-class ImagePathRepository:
-    def __init__(self, session: Session = Depends(get_db)):
-        self.db = session
-
-    # 이미지 리스트를 가져옴 (데이터관리)
-    def get_images(self) -> List[ImagePATH]:
-        return list(self.db.execute(select(ImagePATH)).scalars())
-
-    # 이미지 하나를 가져옴, 이름을 통해 가져옴
-    def get_image_by_image_name(self, image_name: str) -> ImagePATH:
-        return self.db.execute(select(ImagePATH).where(ImagePATH.imagename == image_name)).scalar()
-
-    # 이미지 하나를 가져옴. 이미지 id를 통해 가져옴
-    def get_image_by_id(self, image_id: int) -> ImagePATH:
-        return self.db.execute(select(ImagePATH).where(ImagePATH.imageid ==image_id)).scalar()
-
-    # 이미지 리스트 중 만든사람이 동일한 이미지들을 가져옴
-    def get_images_by_makerid(self, makerid: int) -> List[ImagePATH]:
-        return list(self.db.execute(select(ImagePATH)
-                    .where(ImagePATH.makerid == makerid))
-                    .scalars())
-
-    # 이미지 삭제 리포지토리 함수
-    def delete_image(self, image_id: int):
-        self.db.execute(
-            delete(ImagePATH).where(ImagePATH.imageid == image_id)
-        )
-        self.db.commit()
-
-    # 이미지 저장 함수
-    def save_image(self, save_wanted_image: ImagePATH) -> ImagePATH.imageid:
-        self.db.add(save_wanted_image)
-        self.db.commit()
-        self.db.refresh(save_wanted_image)
-        return save_wanted_image.imageid
-
-    # 이미지 업데이트
-    def update_image(self, update_wanted_image: ImagePATH) -> ImagePATH:
-        self.db.add(self, update_wanted_image)
-        self.db.commit()
-        self.db.refresh(update_wanted_image)
-        return update_wanted_image
-
 class StudentRepository:
     def __init__(self, session: Session = Depends(get_db)):
         self.db = session

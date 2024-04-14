@@ -5,7 +5,6 @@ import requests
 import base64
 import io
 from PIL import Image
-from App.database.repository import ImagePathRepository
 from App.database.tables import ImagePATH
 
 class ImageService:
@@ -23,6 +22,7 @@ class ImageService:
         # image = io.BytesIO(base64.b64decode(image_base64))
         return image
 
+    """
     def get_image_by_name(self, image_name: str, image_repo: ImagePathRepository):
         image = image_repo.get_image_by_image_name(image_name=image_name)
         return image if image is not None else None
@@ -30,7 +30,7 @@ class ImageService:
     def show_images(self, user_id: int, image_repo: ImagePathRepository):
         images = image_repo.get_images_by_makerid(makerid=user_id)
         return images if len(images) > 0 else []
-
+    
     def save_image(self, image_base64, maker_id: int, image_name: str, image_repo: ImagePathRepository):
         save_path = self.webui_setting.SAVE_PATH
 
@@ -67,4 +67,4 @@ class ImageService:
         except OSError as e:
             print("Error while Delete! id : %s : %s" % (image_id, e.strerror))
             return
-
+    """

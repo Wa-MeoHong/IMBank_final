@@ -5,8 +5,6 @@ class StudentForm(BaseModel):
     student_id: int
     university_name: str
     major: str
-
-
     # 필드가 비어있는지, 확인하는 곳
     @field_validator( "university_name","major")
     def check_empty(cls, value):
