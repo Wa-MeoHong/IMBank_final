@@ -102,7 +102,7 @@ async def delete_student(
     return HTTPException(status_code=status.HTTP_200_OK, detail="Student deleted")
 
 
-@app.post("/modify_student")
+@app.patch("/modify_student")
 async def modify_student(
         student_serv: student_service,
         student_repo: student_repository,
