@@ -29,7 +29,7 @@ class MyDataService:
 
     def save_account_info(self, user_id: int, account: AccountForm, account_repo: AccountRepository):
         account = Account.create(
-            userid=user_id,
+            user_id=user_id,
             accountnum=account.account_num,
             objective=account.Objective,
         )
