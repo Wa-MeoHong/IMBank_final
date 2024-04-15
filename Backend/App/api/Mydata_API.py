@@ -72,7 +72,7 @@ async def create_account(
     if account is not None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Account already exists")
 
-    account = mydata_serv.save_account_info(user_id=user_id, account=new_account, account_repo=account_repo)
+    account = mydata_serv.save_account_info(user_id=user_id, new_account=new_account, account_repo=account_repo)
     return HTTPException(status_code=status.HTTP_201_CREATED, detail="Account created")
 
 @app.delete("/deleteAccount")
