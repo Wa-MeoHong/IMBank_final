@@ -47,11 +47,11 @@ class Account(Base):
     # 테이블 속성
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     user_id = Column(Integer, ForeignKey("user.id"), primary_key=True, nullable=False)
-    accountnum = Column(String, nullable=False)
+    accountnum = Column(Integer, nullable=False)
     objective = Column(String, nullable=False)
 
     @classmethod
-    def create(cls, userid: int, accountnum: str, objective: str):
+    def create(cls, userid: int, accountnum: int, objective: str):
         return cls(
             userid=userid,
             accountnum=accountnum,
@@ -61,7 +61,7 @@ class Account(Base):
 class Mydata(Base):
     __tablename__ = "dealhist"
 
-    account_id = Column(Integer, primary_key=True, nullable=False)
+    account_id = Column(Integer, ForeignKey("account.id"), primary_key=True, nullable=False)
     clients = Column(String, nullable=False)
     dealcost = Column(Integer, nullable=False)
     leftcharge = Column(Integer, nullable=False)
