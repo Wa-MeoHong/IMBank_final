@@ -47,14 +47,14 @@ class Account(Base):
     # 테이블 속성
     id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     user_id = Column(Integer, ForeignKey("user.id"), primary_key=True, nullable=False)
-    accountnum = Column(Integer, nullable=False)
+    accountnum = Column(String, nullable=False)
     objective = Column(String, nullable=False)
 
     @classmethod
-    def create(cls, user_id: int, accountnum: int, objective: str):
+    def create(cls, user_id: int, account_num: str, objective: str):
         return cls(
             user_id=user_id,
-            accountnum=accountnum,
+            accountnum=account_num,
             objective=objective,
         )
 # 계좌 거래내역을 담고있는 테이블
