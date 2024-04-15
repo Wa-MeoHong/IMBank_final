@@ -30,7 +30,7 @@ class MyDataService:
     def save_account_info(self, user_id: int, account: AccountForm, account_repo: AccountRepository):
         account = Account.create(
             userid=user_id,
-            accountnum=account.accountnum,
+            accountnum=account.account_num,
             objective=account.Objective,
         )
         account_repo.save_account(account=account)
