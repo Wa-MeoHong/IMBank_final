@@ -20,18 +20,16 @@ from App.database.tables import Account, Mydata
 from App.database.repository import AccountRepository, MydataRepository, UserRepository
 from App.Schema.Mydata_schema import AccountForm
 
-
-
 class MyDataService:
     def __init__(self):
         self.mydata = {}
         self.account_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-    def save_account_info(self, user_id: int, account: AccountForm, account_repo: AccountRepository):
+    def save_account_info(self, user_id: int, new_account: AccountForm, account_repo: AccountRepository):
         account = Account.create(
             user_id=user_id,
-            accountnum=account.account_num,
-            objective=account.Objective,
+            account_num=str(new_account.account_num),
+            objective=new_account.Objective,
         )
         account_repo.save_account(account=account)
         return account
@@ -45,7 +43,7 @@ class MyDataService:
         found_account = None
         # 계좌번호가 일치하는지 확인 후 계좌를 찾음
         for account in account_list:
-            db_account_num = account.accountnum
+            db_account_num = int(account.accountnum)
             if db_account_num == account_num:
                 found_account = account
                 break
