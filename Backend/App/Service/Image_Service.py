@@ -5,7 +5,6 @@ import requests
 import base64
 import io
 from PIL import Image
-from App.database.tables import ImagePATH
 
 class ImageService:
     def __init__(self):
