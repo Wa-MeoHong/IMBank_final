@@ -68,7 +68,7 @@ async def create_account(
         return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not Login")
     user_id = user_serv.get_user(email=user_email, user_repo=user_repo).id
 
-    account = mydata_serv.get_account_info(user_id=user_id, account_num=new_account.accountnum, account_repo=account_repo)
+    account = mydata_serv.get_account_info(user_id=user_id, account_num=new_account.account_num, account_repo=account_repo)
     if account is not None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Account already exists")
 
