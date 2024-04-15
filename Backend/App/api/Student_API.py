@@ -28,7 +28,7 @@ student_repository = Annotated[StudentRepository, Depends()]
 user_service = Annotated[UserService, Depends()]
 user_repository = Annotated[UserRepository, Depends()]
 
-@app.get("/get_student")
+@app.post("/get_student")
 async def get_student(
         login_token: Annotated[str, Depends(oauth2_scheme)],
         student_serv: student_service,
