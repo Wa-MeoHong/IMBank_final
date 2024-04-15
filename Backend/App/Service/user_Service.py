@@ -50,7 +50,7 @@ class UserService:
             password=self.pwd_context.hash(password)
         )
         user_repo.save_user(user=user)
-        return HTTPException(status_code=201, detail=f"User created successfully")
+        return user
 
     # User 데이터를 삭제하는 함수
     def delete_user(self, user_id: int, user_repo: UserRepository):
@@ -67,7 +67,7 @@ class UserService:
         user.password = self.pwd_context.hash(password)
 
         # 똑같은 기본키를 가지고 있다면 내용이 수정된다.
-        user_repo.save_user(user)
+        user_repo.update_user(user)
         return HTTPException(status_code=200, detail=f"User updated successfully")
 
     # 비밀번호 복호화 폼
