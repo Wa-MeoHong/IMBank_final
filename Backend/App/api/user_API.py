@@ -10,6 +10,7 @@
      2024-02-21 |   2   |   modify and improve code
      2024-02-21 |   3   |   Include Login, Service Class Optimize
      2024-04-14 |   4   |   Optimize Code
+
     ========================================================================
 """
 from datetime import datetime, timedelta, timezone
@@ -74,7 +75,7 @@ async def user_signup(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already exists")
 
     # 아니면 유저 제작
-    user_serv.create_user(new_user=new_user, user_repo=user_repo)
+    user = user_serv.create_user(new_user=new_user, user_repo=user_repo)
     return HTTPException(status_code=status.HTTP_200_OK, detail="Signup Succeed")
 
 """ 회원 삭제 폼"""
