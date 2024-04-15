@@ -99,6 +99,7 @@ async def delete_account(
 
     mydata_serv.delete_account_info(account_id=account.id, account_repo=account_repo)
     return HTTPException(status_code=status.HTTP_200_OK, detail="Account deleted")
+
 @app.post("/getMonthsPayData")
 async def get_months_Pay_data_from_csv(
         mydata_serv: mydata_service,
