@@ -24,7 +24,7 @@ from typing_extensions import Annotated
 from App.Security.config import WebUISetting
 from App.Service.Image_Service import ImageService
 from App.Service.user_Service import UserService
-from App.database.repository import ImagePathRepository, UserRepository
+from App.database.repository import UserRepository
 from App.api.user_API import oauth2_scheme
 
 
@@ -35,18 +35,15 @@ app = APIRouter(
 )
 
 image_service = Annotated[ImageService, Depends()]
-image_repository = Annotated[ImagePathRepository, Depends()]
 user_service = Annotated[UserService, Depends()]
 user_repository = Annotated[UserRepository, Depends()]
 
 @app.post("/txt2img")
 async def text2image(
         image_serv: image_service,
-        image_repo: image_repository,
         user_serv: user_service,
-        user_repo: user_repository,
         input_prompt: str,
-        # login_token: Annotated[str, Depends(oauth2_scheme)]
+        login_token: Annotated[str, Depends(oauth2_scheme)]
 ):
     webui_set = image_serv.webui_setting
     payload = {
@@ -55,14 +52,12 @@ async def text2image(
         "steps": 50,
         "batch_size": 4,
     }
-    """
     try:
         user_email = user_serv.decode_access_token(access_token=login_token)
         if user_email is None:
             raise
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not Logined")
-    """
 
     # 프롬프트에 맞게 생산
     images = image_serv.generate_image(payload=payload)
