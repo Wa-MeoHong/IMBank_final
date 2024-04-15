@@ -96,7 +96,7 @@ class AccountRepository:
     def get_account_by_user_id(self, user_id: int) -> List[Account]:
         return list(
             self.db.execute(
-                select(Account).where(Account.userid == user_id)
+                select(Account).where(Account.user_id == user_id)
             ).scalars()
         )
 
