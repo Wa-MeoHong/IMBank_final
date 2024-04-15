@@ -16,7 +16,7 @@ class User(Base):
 
     # 클래스 매서드를 만들어 인스턴스를 만들지 않고 객체를 생성할 수 있음
     @classmethod
-    def create(cls, name:str, email:str, password:str) -> "User":
+    def create(cls, name: str, email: str, password: str) -> "User":
        return cls(
            name=name,
            email=email,
