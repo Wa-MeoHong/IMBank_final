@@ -51,9 +51,9 @@ class Account(Base):
     objective = Column(String, nullable=False)
 
     @classmethod
-    def create(cls, userid: int, accountnum: int, objective: str):
+    def create(cls, user_id: int, accountnum: int, objective: str):
         return cls(
-            userid=userid,
+            user_id=user_id,
             accountnum=accountnum,
             objective=objective,
         )
