@@ -61,7 +61,8 @@ class Account(Base):
 class Mydata(Base):
     __tablename__ = "dealhist"
 
-    account_id = Column(Integer, ForeignKey("account.id"), primary_key=True, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    account_id = Column(Integer, ForeignKey("account.id"), nullable=False)
     clients = Column(String, nullable=False)
     dealcost = Column(Integer, nullable=False)
     leftcharge = Column(Integer, nullable=False)

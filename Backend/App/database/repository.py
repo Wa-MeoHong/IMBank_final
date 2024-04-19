@@ -14,6 +14,7 @@
 """
 
 from typing import List, Optional
+from datetime import datetime
 
 from fastapi import Depends, HTTPException, status
 from sqlalchemy import select, delete
@@ -125,6 +126,12 @@ class MydataRepository:
                 select(Mydata).where(Mydata.account_id == account_id)
             ).scalars()
         )
+
+    def get_datas_by_times(self, data_time: str) -> Mydata:
+        return self.db.execute(
+            select(Mydata).where(Mydata.dealtime==data_time)
+        ).scalar()
+
     # 계좌 정보 입력
     def save_mydata(self, mydata: Mydata) -> None:
         self.db.add(mydata)
