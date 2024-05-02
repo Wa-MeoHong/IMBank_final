@@ -8,6 +8,7 @@
         date    |   no  |                 note
      2024-03-24 |   1   |   first write
      2024-04-14 |   2   |   Optimize Code
+     2024-05-03 |   3   |   change that login token is not necessary for save student data
     ========================================================================
 """
 
@@ -28,7 +29,7 @@ student_repository = Annotated[StudentRepository, Depends()]
 user_service = Annotated[UserService, Depends()]
 user_repository = Annotated[UserRepository, Depends()]
 
-@app.post("/get_student")
+@app.get("/get_student")
 async def get_student(
         login_token: Annotated[str, Depends(oauth2_scheme)],
         student_serv: student_service,
@@ -51,19 +52,18 @@ async def get_student(
 
 @app.post("/save_student")
 async def save_student(
-        login_token: Annotated[str, Depends(oauth2_scheme)],
         student_serv: student_service,
         student_repo: student_repository,
         user_serv: user_service,
         user_repo: user_repository,
+        user_email: str,
         new_student: student_schema.StudentForm = Depends(),
 ):
     try:
-        user_email = user_serv.decode_access_token(access_token=login_token)
         if user_email is None:
             raise
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid")
+        raise HTTPException(status_code=status.HTTP_404_UNAUTHORIZED, detail="No User Email")
 
     # 로그인 정보에서 유저의 아이디를 얻어옴
     user_id = user_serv.get_user(email=user_email,user_repo=user_repo).id

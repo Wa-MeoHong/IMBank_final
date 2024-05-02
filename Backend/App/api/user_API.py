@@ -10,7 +10,7 @@
      2024-02-21 |   2   |   modify and improve code
      2024-02-21 |   3   |   Include Login, Service Class Optimize
      2024-04-14 |   4   |   Optimize Code
-
+     2024-05-03 |   5   |   Add get userdata method
     ========================================================================
 """
 from datetime import datetime, timedelta, timezone
@@ -20,6 +20,7 @@ from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from App.Schema import user_schema, token_schema
 from fastapi import HTTPException, status
+import json
 
 from App.Security.config import jwt_setting
 from App.Service.user_Service import UserService
@@ -40,24 +41,22 @@ app = APIRouter(
 """로그인 폼"""
 @app.post("/login")
 async def user_login(
-        response: Response,
-        request: Request,
         user_repo: user_repository,
         user_serv: user_service,
         login_form: OAuth2PasswordRequestForm = Depends()
-) -> token_schema.Token:
+):
     is_exist = user_serv.is_exist_user_by_email(email=login_form.username, user_repo=user_repo)
     if not is_exist:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ivalid username or password")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid username or password")
 
     user = user_serv.get_user(email=login_form.username, user_repo=user_repo)
     res = user_serv.verify_password(plain_password=login_form.password, hashed_password=user.password)
     if not res:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ivalid username or password")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid username or password")
 
     # 토큰 생성
     access_token = user_serv.create_access_token(data={"email": user.email})
-
+    print(access_token)
     return token_schema.Token(access_token=access_token, token_type="bearer")
 
 """회원가입 폼"""
@@ -65,7 +64,7 @@ async def user_login(
 async def user_signup(
         user_serv: user_service,
         user_repo: user_repository,
-        new_user: user_schema.UserForm = Depends(),
+        new_user: Annotated[user_schema.UserForm, Depends()],
 ):
     # 먼저 유저를 입력 하여 데이터셋으로 만듦
     user = user_serv.get_user(email=new_user.email, user_repo=user_repo)
@@ -77,6 +76,31 @@ async def user_signup(
     # 아니면 유저 제작
     user = user_serv.create_user(new_user=new_user, user_repo=user_repo)
     return HTTPException(status_code=status.HTTP_200_OK, detail="Signup Succeed")
+
+#회원 정보 조회
+@app.get("/userdata")
+async def get_user_data(
+        user_serv: user_service,
+        user_repo: user_repository,
+        token: Annotated[str, Depends(oauth2_scheme)],
+):
+    try:
+        user_email = user_serv.decode_access_token(token)
+        if user_email is None:
+            raise
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not Authorized")
+
+    user = user_serv.get_user(email=user_email, user_repo=user_repo)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User is not exists")
+
+    user_json = {
+        "name": user.name,
+        "email": user.email
+    }
+
+    return user_json
 
 """ 회원 삭제 폼"""
 @app.delete("/resign")
@@ -107,7 +131,6 @@ async def user_resign(
 """ OAuth를 이용하여 유저 확인을 한 후 인증이 된 토큰을 확인 되면 수정"""
 @app.patch("/update")
 async def user_update(
-        response: Response, request: Request,
         user_serv: user_service,
         user_repo: user_repository,
         token: Annotated[str, Depends(oauth2_scheme)],

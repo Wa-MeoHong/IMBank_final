@@ -91,6 +91,7 @@ class UserService:
         try:
             payload: dict = jwt.decode(access_token, key=self.jwt_set.JWT_KEY, algorithms=self.jwt_set.ALGORITHM)
             user_email: str = payload["email"]
+            # print(payload)
             if user_email is None:
                 raise HTTPException(status_code=404, detail="User Not Found")
             return user_email
