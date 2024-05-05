@@ -30,7 +30,7 @@ user_repository = Annotated[UserRepository, Depends()]
 mydata_repository = Annotated[MydataRepository, Depends()]
 account_repository = Annotated[AccountRepository, Depends()]
 
-@app.post("/getAccount")
+@app.get("/getAccount")
 async def get_account(
         mydata_serv: mydata_service,
         user_serv: user_service,
