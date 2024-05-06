@@ -26,6 +26,8 @@ if "gen_cards" in st.session_state:
         del st.session_state["gen_cards"]
 if "Card_image_result" in st.session_state:
     del st.session_state["Card_image_result"]
+if "mydata_page" in st.session_state:
+    del st.session_state["mydata_page"]
 
 
 st.title("Simple App for IM Challenger")
