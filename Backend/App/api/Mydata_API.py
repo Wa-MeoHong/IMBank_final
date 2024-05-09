@@ -49,7 +49,12 @@ async def get_account(
     user_id = user_serv.get_user(email=user_email, user_repo=user_repo).id
 
     account = mydata_serv.get_account_info(user_id=user_id, account_num=account_num, account_repo=account_repo)
-    return account if account is not None else HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
+    # 필요없는 정보는 빼고 보낸다.
+    account_info = {
+        "account_num": account.accountnum,
+        "objective": account.objective
+    }
+    return account_info if account is not None else HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
 
 @app.post("/createAccount")
 async def create_account(
@@ -195,7 +200,7 @@ async def analyze_data(
         mydata_repo: mydata_repository,
         account_repo: account_repository,
         login_token: Annotated[oauth2_scheme, Depends(oauth2_scheme)],
-        data : dict,
+        data: dict,
 ):
     mydata_serv.analyze_data(data=data)
     return data

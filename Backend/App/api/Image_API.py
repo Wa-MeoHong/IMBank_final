@@ -62,7 +62,7 @@ async def text2image(
     # 프롬프트에 맞게 생산
     images = image_serv.generate_image(payload=payload)
     if not images:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Image not Gene")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Image not Generate")
 
     # 이미지 람다 변환 후 리스트 저장
     image_list = list(map(lambda x: image_serv.decode_image(x), images))

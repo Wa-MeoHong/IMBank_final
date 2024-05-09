@@ -120,7 +120,7 @@ class MyDataService:
 
     def analyze_data(self, data: dict):
         # 먼정 월별 데이터로 나눈 다음, 분석을 진행한다.
-        df=pd.DataFrame(data)
+        df = pd.DataFrame(data)
         df["거래일시"] = pd.to_datetime(df["거래일시"])
         df["거래일시"] = df["거래일시"].dt.strftime("%Y-%m")
         print(df["거래일시"][0])
