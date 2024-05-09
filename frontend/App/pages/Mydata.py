@@ -1,3 +1,17 @@
+"""
+    file : Streamlit. App.Mydata.py
+    writer : Meohong
+    first date : 2024-05-03
+    Objective : Mydata( Service )
+    modified :
+    ========================================================================
+        date    |   no  |                 note
+     2024-05-03 |   1   |   first write
+     2024-05-05 |   2   |   데이터 축약 함수 만들기
+     2024-05-06 |   3   |   방사형 그래프 만들기 추가
+     2024-05-10 |   4   |   소비 상위 3개 출력 기능 추가. 0.5 반올림 기능 추가
+    ========================================================================
+"""
 import streamlit as st
 import requests
 import pandas as pd
@@ -7,6 +21,8 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import seaborn as sns
 import numpy as np
+
+from itertools import combinations
 
 st.set_page_config(page_title="MyData", layout="centered")
 
@@ -39,8 +55,8 @@ def fontRegistered():
     font_name = "NanumSquare"
     plt.rc('font', family=font_name)
 
-
-def analyze_data(df):
+# 데이터 요약하기. 필요없는 거래처와 남은 금액 데이터를 Drop한다.
+def summarize_data(df):
     now_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "/Storage/analyze_data/"
     jsonfile = now_dir + "field_dict.json"
     with open(jsonfile, 'r') as f:
@@ -58,10 +74,14 @@ def analyze_data(df):
     summarize_groups = groups.sum()
 
     #st.dataframe(groups.sum())
-    result = pd.DataFrame(summarize_groups).reset_index().sort_values('거래비용', ascending=True)
+    result = pd.DataFrame(summarize_groups).reset_index().sort_values(by='거래비용', ascending=True)
     # st.dataframe(result)
-    group2 = result.groupby(['거래일시'])
-    
+
+    return result
+
+# 월 마다 바 히스토그램 그리기 
+def ploting_data_bar(filtered_df):
+    group2  = filtered_df.groupby(['거래일시'])
     fontRegistered()
     plt.rc('font', family='NanumGothic')
 
@@ -70,51 +90,87 @@ def analyze_data(df):
         with col1:
             st.dataframe(group)
         with col2:
-            palette = sns.color_palette('flare', len(group["메모"]))
-            
+            #palette = sns.color_palette('flare', len(group["메모"]))
+            palette = []
+            for i in range(0, len(group["메모"]) - 2):
+                palette.append('gray')
+            palette.extend(['orange', 'red' ])
             plt.barh(group["메모"], group['거래비용'],color=palette )
             plt.title("{}".format(name[0]))
             st.pyplot(plt)
             plt.close()
-    
-    return result
 
-def summarizing_data(df):
-    now_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "/Storage/analyze_data/"
-    jsonfile = now_dir + "field_dict.json"
-    with open(jsonfile, 'r') as f:
-        field_dict = json.load(f)
-    # st.write(field_dict)
-    df["거래일시"] = pd.to_datetime(df["거래일시"])
-    df["거래일시"] = df["거래일시"].dt.strftime("%Y-%m")
-    df["메모"] = df["메모"].map(field_dict)
-    df["메모"] = df["메모"].fillna("기타")
-    df.drop(["거래처", "남은금액", "거래일시"], axis=1, inplace=True)
-
-
+# 가장 많은 소비를 한 종목을 출력해주는 함수 ( 전 달 모두 합해서 소비가 가장 큰 상위 3개 출력)
+def analyze_data(df):
     groups = df.groupby(["메모"])
     summarize_groups = groups.sum()
     result = pd.DataFrame(summarize_groups).reset_index()
     result = result[result['메모'] != '기타'].reset_index()
 
+    group_memo = result.groupby(["메모"])
+    result2 = pd.DataFrame(group_memo.sum()).reset_index()
+    result2.sort_values(by='거래비용', ascending=False, inplace=True)
+    top_category = list(result2["메모"][:3])  
+    # st.write(result2)
+    st.write("설정한 월부터 지금까지 데이터를 분석한 결과 (기타 제외)")
+    st.write(str(top_category)+"순 으로")
+    st.write("가장 많은 소비를 하고 있었습니다")
+    
+    return result
+
+def analyze2_data(df):
+    # 절반 반올림 함수
+    def adjust_values(values, target_sum=5):
+    # 각 값들을 0.5의 배수로 반올림
+        #target_sum = sum(values)
+        rounded_values = [0.5 * round(x / 0.5) for x in values]
+        
+        # 반올림된 값들의 총합 계산
+        current_sum = sum(rounded_values)
+        
+        # 총합이 목표값과 일치할 때까지 조정
+        while current_sum != target_sum:
+            # 총합이 목표보다 크면 0.5를 빼고, 목표보다 작으면 0.5를 더함
+            for i in range(len(rounded_values)):
+                if current_sum > target_sum and rounded_values[i] > 0:
+                    rounded_values[i] -= 0.5
+                    current_sum -= 0.5
+                    if current_sum == target_sum:
+                        break
+                elif current_sum < target_sum:
+                    rounded_values[i] += 0.5
+                    current_sum += 0.5
+                    if current_sum == target_sum:
+                        break
+        return rounded_values
+    
     # 데이터 추가
-    data_gram_val = ["구독", "문화생활", "쇼핑", "식사", "카페", "편의점"]
+    result = df[df['메모'] != '기타'].reset_index(drop=True)
+    data_gram_val = ["문화생활", "쇼핑", "식사", "카페", "편의점"]
     for value in data_gram_val:
         if value not in result["메모"].values:
-            new_row = {"메모": value, "거래비용": 0}
-            length = len(result["메모"].values)
-            st.write(length)
-            result.loc[length] = [value,0]
+            # length = len(result["메모"].values)
+            # st.write(length)
+            result.loc[len(result)] = [value,0]
+
     result["비율"] = result["거래비용"] / result["거래비용"].sum()
     top_3 = result["비율"].nlargest(3).index
+    
+    # st.write(result)
 
     result["혜택 비율"] = 0
     result.loc[top_3, '혜택 비율'] = result.loc[top_3, '비율']  # 상위 3개에는 비율 값 할당
     total_ratio_top_3 = result.loc[top_3, '혜택 비율'].sum()
-    result.loc[top_3, '혜택 비율'] = (result.loc[top_3, '혜택 비율'] / total_ratio_top_3) * 0.15 * 100
+    result.loc[top_3, '혜택 비율'] = (result.loc[top_3, '혜택 비율'] / total_ratio_top_3) * 0.05 * 100
 
-    result.drop(["거래비용", "비율"], axis=1, inplace=True)    
-    # st.write(result)
+    result.drop(["거래비용", "비율"], axis=1, inplace=True)
+    result["혜택 비율"] = np.floor(result["혜택 비율"])
+    adjust_val = adjust_values(result["혜택 비율"][:3])
+    adj_list = adjust_val+[0, 0]
+    result["혜택 비율"] = adj_list
+    #st.write(adj_list)
+    st.write(result)
+
     return result
 
 def Rader_chart(df):
@@ -138,14 +194,12 @@ def Rader_chart(df):
     ax.set_xticklabels(labels)
     ax.set_yticklabels([])
 
-    ax.set_ylim(-2,10)    # 축 고정
+    ax.set_ylim(-1,4.3)    # 축 고정
 
     plt.title('혜택 그래프', size=20, color='black', y=1.1)
     st.pyplot(plt)
     plt.close()
-
-    
-
+ 
 # 마이데이터 메인페이지
 def mydata_main():
     token = st.session_state['token']["access_token"]
@@ -202,7 +256,10 @@ def mydata_main():
                 st.stop()
 
             #st.dataframe(account_data)
-            analyze_data(account_data)
+            result = summarize_data(account_data)
+            # st.write(result)
+            analyze_data(result)
+            ploting_data_bar(result)
             
         if next:
             if account == "":
@@ -224,7 +281,7 @@ def mydata_page_1():
     }
     with st.container():
         st.title("마이 혜택 정하기")
-        st.subheader("현재 추천해줄만한 혜택 비율이에요")
+        st.subheader("현재 추천해줄만한 혜택 조합이에요")
         button_side1, button_side2  = st.columns(spec=2)
         with button_side1:
             next = st.button(label="다음")
@@ -242,13 +299,21 @@ def mydata_page_1():
             account_data = pd.DataFrame(response_data2)
 
         # st.dataframe(account_data)
-        result = summarizing_data(account_data)       
+        result = summarize_data(account_data)
+        result = result.drop('거래일시', axis=1)
+        result2 = pd.DataFrame(result.groupby("메모").sum()).reset_index()
         
-        Rader_chart(result)
-        
+        advantage_per = analyze2_data(result2)
+        Rader_chart(advantage_per)
+        #st.write(result2)
+
+        # st.write(result)
+        # st.write(result)
+        # Rader_chart(result)
+    
     if next:
         st.session_state["mydata_page"] = 2
-        st.session_state["graph_data"] = result
+        st.session_state["graph_data"] = advantage_per
         st.rerun()
     if reset:
         go_back_mydata()
@@ -273,20 +338,18 @@ def mydata_page_2():
         val_1, val_2, val_3 = st.columns(spec=3)
         val_4, val_5, val_6 = st.columns(spec=3)
 
-        with val_1:
-            new_value_1 = st.text_input(label="구독", value=values[0])
         with val_2:
-            new_value_2 = st.text_input(label="문화생활", value=values[1])
+            new_value_2 = st.text_input(label="문화생활", value=values[0])
         with val_3:
-            new_value_3 = st.text_input(label="쇼핑", value=values[2])
+            new_value_3 = st.text_input(label="쇼핑", value=values[1])
         with val_4:
-            new_value_4 = st.text_input(label="식사", value=values[3])
+            new_value_4 = st.text_input(label="식사", value=values[2])
         with val_5:
-            new_value_5 = st.text_input(label="카페", value=values[4])
+            new_value_5 = st.text_input(label="카페", value=values[3])
         with val_6:
-            new_value_6 = st.text_input(label="편의점", value=values[5])
+            new_value_6 = st.text_input(label="편의점", value=values[4])
 
-        new_values = list((float(new_value_1), float(new_value_2), float(new_value_3), float(new_value_4), float(new_value_5), float(new_value_6)))
+        new_values = list((float(new_value_2), float(new_value_3), float(new_value_4), float(new_value_5), float(new_value_6)))
         graph_data = pd.DataFrame({
             '메모' : labels,
             '혜택 비율': new_values
